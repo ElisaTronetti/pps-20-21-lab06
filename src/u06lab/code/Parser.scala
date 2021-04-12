@@ -30,3 +30,10 @@ trait NotTwoConsecutive[T] extends Parser[T]{
 }
 
 class NotTwoConsecutiveParser(chars: Set[Char]) extends BasicParser(chars) with NotTwoConsecutive[Char]
+
+//implicit conversion if found a string return a parser with the string converted to chars
+object ConvertToChar {
+  implicit class StringParser(str: String) {
+    def charParser(): Parser[Char] = new BasicParser(Set.from(str.toCharArray))
+  }
+}
