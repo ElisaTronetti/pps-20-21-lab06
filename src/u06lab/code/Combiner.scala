@@ -4,21 +4,23 @@ package u06lab.code
   * 1) Implement trait Functions with an object FunctionsImpl such that the code
   * in TryFunctions works correctly.
  */
-
+/*
 trait Functions {
   def sum(a: List[Double]): Double
   def concat(a: Seq[String]): String
   def max(a: List[Int]): Int // gives Int.MinValue if a is empty
 }
 
+//basic implementation
 object FunctionsImpl extends Functions {
 
-  override def sum(a: List[Double]): Double = ???
+  override def sum(a: List[Double]): Double = a.foldLeft(0.0)(_+_)
 
-  override def concat(a: Seq[String]): String = ???
+  override def concat(a: Seq[String]): String = a.foldLeft("")(_+_)
 
-  override def max(a: List[Int]): Int = ???
+  override def max(a: List[Int]): Int = a.foldLeft(Int.MinValue)(_.max(_))
 }
+*/
 
 
 /*
@@ -35,16 +37,50 @@ object FunctionsImpl extends Functions {
  */
 
 trait Combiner[A] {
-  def unit: A
-  def combine(a: A, b: A): A
+  def unit: A //what to return if the data structure is empty
+  def combine(a: A, b: A): A //how to combine the elements if the data structure is not empty
 }
 
-object TryFunctions extends App {
-  val f: Functions = FunctionsImpl
-  println(f.sum(List(10.0,20.0,30.1))) // 60.1
-  println(f.sum(List()))                // 0.0
-  println(f.concat(Seq("a","b","c")))   // abc
-  println(f.concat(Seq()))              // ""
-  println(f.max(List(-10,3,-5,0)))      // 3
-  println(f.max(List()))                // -2147483648
+object ImplicitCombiner {
+  implicit object sumCombiner extends Combiner[Double] {
+    override def unit: Double = 0.0
+    override def combine(a: Double, b: Double): Double = a + b
+  }
+
+  implicit object concatCombiner extends Combiner[String] {
+    override def unit: String = ""
+    override def combine(a: String, b: String): String = a + b
+  }
+
+  implicit object maxCombiner extends Combiner[Int]{
+    override def unit: Int = Int.MinValue
+    override def combine(a: Int, b: Int): Int = a.max(b)
+  }
+}
+
+/**
+ * using implicit combiner
+ */
+trait Functions {
+  def sum(a: List[Double]): Double
+  def concat(a: Seq[String]): String
+  def max(a: List[Int]): Int
+}
+
+object FunctionsImpl extends Functions {
+  import u06lab.code.ImplicitCombiner._
+
+  override def sum(a: List[Double]): Double = combine(a)
+
+  override def concat(a: Seq[String]): String = combine(a)
+
+  override def max(a: List[Int]): Int = combine(a)
+
+  //actually use strategy, private method that actually takes the correct combiner and applies combine if possible,
+  //otherwise returns combine
+  private def combine[A](elems: Seq[A])(implicit  combiner: Combiner[A]): A= {
+    var init = combiner.unit
+    elems.foreach(e => init = combiner.combine(init, e))
+    init
+  }
 }
