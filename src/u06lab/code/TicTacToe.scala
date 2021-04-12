@@ -16,7 +16,21 @@ object TicTacToe extends App{
     case Mark(`x`, `y`, player) => player
   }
 
-  def placeAnyMark(board: Board, player: Player): Seq[Board] = ???
+  //TODO refactor
+  def placeAnyMark(board: Board, player: Player): Seq[Board] = {
+    var game: Seq[Board] = Seq()
+    for(y <- 0 to 2; x <- 0 to 2) {
+      find(board, x, y) match {
+        case Some(p) =>
+          val mark: Mark = Mark(x, y, p)
+          game = game :+ (board :+ mark)
+        case None =>
+          val mark: Mark = Mark(x, y, player)
+          game = game :+ (board :+ mark)
+      }
+    }
+    game
+  }
 
   def computeAnyGame(player: Player, moves: Int): Stream[Game] = ???
 
@@ -31,17 +45,18 @@ object TicTacToe extends App{
   println(find(List(Mark(0,0,X),Mark(0,1,O),Mark(0,2,X)),0,1)) // Some(O)
   println(find(List(Mark(0,0,X),Mark(0,1,O),Mark(0,2,X)),1,1)) // None
 
-  /*
+
   // Exercise 2: implement placeAnyMark such that..
   printBoards(placeAnyMark(List(),X))
   //... ... ..X ... ... .X. ... ... X..
   //... ..X ... ... .X. ... ... X.. ...
   //..X ... ... .X. ... ... X.. ... ...
+
   printBoards(placeAnyMark(List(Mark(0,0,O)),X))
   //O.. O.. O.X O.. O.. OX. O.. O..
   //... ..X ... ... .X. ... ... X..
   //..X ... ... .X. ... ... X.. ...
-
+  /*
   // Exercise 3 (ADVANCED!): implement computeAnyGame such that..
   computeAnyGame(O, 4) foreach {g => printBoards(g); println()}
   //... X.. X.. X.. XO.
