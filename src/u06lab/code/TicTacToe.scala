@@ -1,6 +1,6 @@
 package u06lab.code
 
-object TicTacToe {
+object TicTacToe extends App{
   sealed trait Player{
     def other: Player = this match {case X => O; case _ => X}
     override def toString: String = this match {case X => "X"; case _ => "O"}
@@ -12,7 +12,9 @@ object TicTacToe {
   type Board = List[Mark]
   type Game = List[Board]
 
-  def find(board: Board, x: Int, y: Int): Option[Player] = ???
+  def find(board: Board, x: Int, y: Int): Option[Player] = board collectFirst {
+    case Mark(`x`, `y`, player) => player
+  }
 
   def placeAnyMark(board: Board, player: Player): Seq[Board] = ???
 
@@ -29,6 +31,7 @@ object TicTacToe {
   println(find(List(Mark(0,0,X),Mark(0,1,O),Mark(0,2,X)),0,1)) // Some(O)
   println(find(List(Mark(0,0,X),Mark(0,1,O),Mark(0,2,X)),1,1)) // None
 
+  /*
   // Exercise 2: implement placeAnyMark such that..
   printBoards(placeAnyMark(List(),X))
   //... ... ..X ... ... .X. ... ... X..
@@ -51,4 +54,5 @@ object TicTacToe {
   //... .X. .X. .X. .X.
 
   // Exercise 4 (VERY ADVANCED!) -- modify the above one so as to stop each game when someone won!!
+  */
 }
