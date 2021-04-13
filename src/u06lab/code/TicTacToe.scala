@@ -1,5 +1,9 @@
 package u06lab.code
 
+import u06lab.code.TicTacToe.isOver
+
+import scala.Console.println
+
 object TicTacToe extends App{
   sealed trait Player{
     def other: Player = this match {case X => O; case _ => X}
@@ -16,23 +20,31 @@ object TicTacToe extends App{
     case Mark(`x`, `y`, player) => player
   }
 
-  //TODO refactor
   def placeAnyMark(board: Board, player: Player): Seq[Board] = {
-    var game: Seq[Board] = Seq()
-    for(y <- 0 to 2; x <- 0 to 2) {
-      find(board, x, y) match {
-        case Some(p) =>
-          val mark: Mark = Mark(x, y, p)
-          game = game :+ (board :+ mark)
-        case None =>
-          val mark: Mark = Mark(x, y, player)
-          game = game :+ (board :+ mark)
-      }
-    }
-    game
+    for {
+      y <- 0 to 2
+      x <- 0 to 2
+      mark = Mark(x, y, player)
+      if find(board, x, y).isEmpty //filter (add to board only if there is not a mark already placed)
+      } yield mark :: board
   }
 
-  def computeAnyGame(player: Player, moves: Int): Stream[Game] = ???
+  def computeAnyGame(player: Player, moves: Int): Stream[Game] = moves match {
+    case 0 => Stream[Game](List[Board](Nil))
+    case _ => for {
+      game <- computeAnyGame(player.other, moves - 1)
+      nextBoard <- placeAnyMark(game.head, player)
+      if !isOver(nextBoard) //filter
+    } yield nextBoard :: game
+  }
+
+  def isOver(board: Board): Boolean = board.groupBy(_.player).values.exists(marks =>
+    marks.groupBy(_.y).values.size >= 3 //rows
+      || marks.groupBy(_.x).values.size >= 3 //cols
+      || marks.count(m => m.x == m.y) >= 3 //diagonal
+      || marks.count(m => m.x + m.y == 2) >= 3 //the addition must be 2 in the anti diagonal
+  )
+
 
   def printBoards(game: Seq[Board]): Unit =
     for (y <- 0 to 2; board <- game.reverse; x <- 0 to 2) {
@@ -56,9 +68,9 @@ object TicTacToe extends App{
   //O.. O.. O.X O.. O.. OX. O.. O..
   //... ..X ... ... .X. ... ... X..
   //..X ... ... .X. ... ... X.. ...
-  /*
+
   // Exercise 3 (ADVANCED!): implement computeAnyGame such that..
-  computeAnyGame(O, 4) foreach {g => printBoards(g); println()}
+  computeAnyGame(O, 6) foreach {g => printBoards(g); println()}
   //... X.. X.. X.. XO.
   //... ... O.. O.. O..
   //... ... ... X.. X..
@@ -67,7 +79,7 @@ object TicTacToe extends App{
   //... ... .O. XO. XOO
   //... ... ... ... ...
   //... .X. .X. .X. .X.
-
+/*
   // Exercise 4 (VERY ADVANCED!) -- modify the above one so as to stop each game when someone won!!
   */
 }
