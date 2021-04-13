@@ -77,10 +77,6 @@ object FunctionsImpl extends Functions {
   override def max(a: List[Int]): Int = combine(a)
 
   //actually use strategy, private method that actually takes the correct combiner and applies combine if possible,
-  //otherwise returns combine
-  private def combine[A](elems: Seq[A])(implicit  combiner: Combiner[A]): A= {
-    var init = combiner.unit
-    elems.foreach(e => init = combiner.combine(init, e))
-    init
-  }
+  //otherwise do combine
+  private def combine[A](elems: Seq[A])(implicit  combiner: Combiner[A]): A = elems.foldLeft(combiner.unit)(combiner.combine)
 }
